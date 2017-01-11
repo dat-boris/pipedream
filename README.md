@@ -98,9 +98,15 @@ parse_log_generate_fixture(logs,
 We should be able to emit data health metrics for free in the pipeline, and use
 such metrics in case of error
 
-In case of abnormality, again such capturing is 
+In case of abnormality, again such capturing is important to allow us to enable
+automatic error capture
 
 ```python
+
+pipedream.set_error_fixture(True,
+                            output_as_log=True,
+                            log_assert_error=True)
+
 # optional sync await can apply here
 def production_pipeline(input_from_appleland):
     output = create_count_of_words(text)
@@ -156,6 +162,15 @@ of the same principle.
 Data-engineering-y
 
 * This frameworkwork should be compatible with concurrency infrastructure of python3 such as [futures](https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.Future) and [coroutines`(https://docs.python.org/3/library/asyncio-task.html)
+
+* There should be ability to `tag` a fixture - a classic use case is when we switch
+data pipeline, we would like to be able to reuse and compare inputs / outputs between
+pipeline.
+
+```python
+test_migration(old_data, old_expected):
+  test_old_pipeline(patch_input_difference(old_data)) == old_expected
+```
 
 
 Data-science-cy
