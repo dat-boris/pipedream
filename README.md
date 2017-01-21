@@ -7,6 +7,10 @@ We propose a set of principle which helps us to create a Validation Driven Data
 framework.  We illustrate this proposal with a set of libraries implemented against
 the pipeline.
 
+## Examples
+
+See [word count example here](examples/01_word_count/)
+
 
 ## Principle of PipeDream
 
