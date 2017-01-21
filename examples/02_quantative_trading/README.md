@@ -69,3 +69,4 @@ be able to:
 * visualize and understand
 * apply simple cross validate features
 * judge how well the model does
+* cross-validation application - realize when model might not do what you expect at scale

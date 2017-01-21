@@ -98,7 +98,7 @@ parse_log_generate_fixture(logs,
 We should be able to emit data health metrics for free in the pipeline, and use
 such metrics in case of error
 
-In case of abnormality, again such capturing is 
+In case of abnormality, again such capturing is
 
 ```python
 # optional sync await can apply here
