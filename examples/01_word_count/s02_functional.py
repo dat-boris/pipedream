@@ -4,8 +4,7 @@
 Breaking down into functional calls
 """
 
-import six
-import io
+#import six
 import re
 
 from collections import Counter
@@ -14,7 +13,7 @@ import sys
 sys.path.append('../..')
 
 from pipedream import pipeline
-from testdata import EXAMPLE_DATA, run_example
+from testdata import run_example
 
 RE_CHAR = re.compile('\w')
 
@@ -22,13 +21,13 @@ def functional_counts(stream):
     """
     How would we scale and distribute a wordcount operation
     """
-    datapipe = pipeline.compose_pipe([
+    datapipe = pipeline.Pipeline([
         emit_words,
         filter_empty_word,
         count_words
     ])
 
-    return datapipe(iter(lambda: stream.read(1), ''))
+    return datapipe.apply(iter(lambda: stream.read(1), ''))
 
 
 def emit_words(stream):

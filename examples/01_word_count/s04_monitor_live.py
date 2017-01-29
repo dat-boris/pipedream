@@ -13,8 +13,6 @@ from pprint import pprint
 from testdata import BAD_INPUT
 
 from pipedream import pipeline
-
-from pipedream import test as pipeline_test
 from pipedream.store import PipelineStore
 
 

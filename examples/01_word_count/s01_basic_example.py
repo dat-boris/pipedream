@@ -4,7 +4,7 @@
 Basic examples showing word count concepts
 """
 
-import six
+#import six
 import re
 
 from collections import Counter
@@ -12,7 +12,7 @@ from collections import Counter
 import sys
 sys.path.append('../..')
 
-from testdata import EXAMPLE_DATA, run_example
+from testdata import run_example
 
 #--------------------
 # Example 1 - niave example

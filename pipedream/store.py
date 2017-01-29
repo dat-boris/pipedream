@@ -3,9 +3,7 @@ import os
 import logging
 import ast
 
-from functools import reduce, wraps
 from simplekv.fs import FilesystemStore
-from inspect import isgeneratorfunction
 
 from .utils import wrap_function
 

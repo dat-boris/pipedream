@@ -1,4 +1,5 @@
 import logging
+from inspect import isgeneratorfunction
 from functools import reduce
 from .store import wrap_function
 

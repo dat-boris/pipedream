@@ -9,11 +9,9 @@ logging.basicConfig(level=logging.INFO)
 import s02_functional
 
 from pipedream import pipeline
-
-from pipedream import test as pipeline_test
 from pipedream.store import PipelineStore
 
-from testdata import EXAMPLE_DATA, run_example
+from testdata import EXAMPLE_DATA
 
 def demo_test_fixture():
     store = PipelineStore()
