@@ -35,8 +35,9 @@ class PipelineStore(object):
 
     def store_put(self, step_func, input, output):
         key = self.gen_key_from_input(step_func, input)
-        logger.info("[PD] Saving to store key: {} - {}".format(key, output))
-        self.store.put(key, self.serialize((input, output)))
+        data = self.serialize((input, output))
+        logger.info("[PD] Saving to store key: {} - {}".format(key, data))
+        self.store.put(key, data)
         return key
 
     def gen_key_from_input(self, step_func, input):

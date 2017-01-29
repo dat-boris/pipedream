@@ -62,7 +62,7 @@ def count_words(word_stream):
     counter = Counter()
     for word in word_stream:
         counter[word] += 1
-    return counter
+    return dict(counter)
 
 
 if __name__=='__main__':

@@ -38,6 +38,11 @@ def demo_test_fixture():
         store=store
     )
 
+    pipeline.test_step(
+        s02_functional.count_words,
+        store=store
+    )
+
     print(u"Test pass!")
 
 if __name__=='__main__':

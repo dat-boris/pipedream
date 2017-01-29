@@ -49,7 +49,6 @@ class Pipeline(object):
                 self.errors.append(self.data_stack_trace)
             self.data_stack_trace = []
             return x
-        #TODO: save stack trace globally
 
         return self.apply(
             input,
@@ -78,7 +77,10 @@ def test_step(step_function, store):
     for input, expected in store.all_data_for(step_function):
         logger.info(u"[TEST] Testing {} expects {}".format(input, expected))
         if (isgeneratorfunction(step_function)):
-            assert list(step_function(input))==expected
+            output = list(step_function(input))
+            # A small hack to avoid terminator position
+            assert expected in output, \
+                "Expect {}->{}, got {}".format(input, expected, output)
         else:
             assert step_function(input)==expected
         logger.info(u"[TEST] Test passed for {}".format(step_function.__name__))
