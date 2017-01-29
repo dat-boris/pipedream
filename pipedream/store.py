@@ -14,12 +14,12 @@ class PipelineStore(object):
     """
     A class represent the pipeline store
     """
-    def __init__(self, path='./pipeline_store', input_key_func=None):
+    def __init__(self, path='./pipeline_store', input_key_func=None, inspect=False):
         if not os.path.exists(path):
             os.makedirs(path)
         self.store = FilesystemStore(path)
-        self.clear()
-
+        if not inspect:
+            self.clear()
         self.input_key_func = input_key_func
         if self.input_key_func is None:
             self.input_key_func = lambda x: hash(repr(x))
@@ -88,3 +88,10 @@ class PipelineStore(object):
     def clear(self):
         for k in self.store:
             self.store.delete(k)
+
+    def copy_to(self, path):
+        # create a new store
+        new_store = PipelineStore(path)
+        for k in self.store:
+            new_store.store.put(k, self.store.get(k))
+        return new_store

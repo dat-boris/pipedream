@@ -18,51 +18,53 @@ from pipedream.store import PipelineStore
 
 def demo_broken_monitoring():
 
-    error_store = PipelineStore('./error_store')
-
     def check_word_maxlen(word):
         assert 0 < len(word) < 40, "Expect be less than 40 chars"
 
-    def check_number_of_words(word):
-        assert len(word) >= 3,"Expect have more than 3 words in a paragraph"
+    class FrequencyValidator(object):
+        def __init__(self, max_empty=100):
+            self.empty_count = 0
+            self.max_empty = max_empty
+
+        def validate(self, word):
+            if not word:
+                self.empty_count += 1
+                if (self.empty_count >= self.max_empty):
+                    self.empty_count = 0
+                    assert False, \
+                        "Do not expect {} consecutive empty words".format(self.max_empty)
+            else:
+                self.empty_count = 0
 
     monitored_pipeline = pipeline.Pipeline()
 
     monitored_pipeline.set_steps([
-        s02_functional.emit_words,
-        # monitored_pipeline.monitor_step(
-        #     s02_functional.filter_empty_word,
-        #     check_word_maxlen
-        # ),
-        s02_functional.filter_empty_word,
         monitored_pipeline.monitor_step(
-            s02_functional.count_words,
-            check_number_of_words
+            s02_functional.emit_words,
+            FrequencyValidator().validate
         ),
+        monitored_pipeline.monitor_step(
+            s02_functional.filter_empty_word,
+            check_word_maxlen
+        ),
+        s02_functional.filter_empty_word,
+        s02_functional.count_words
     ])
 
     output = monitored_pipeline.monitor_apply(
         BAD_INPUT[0],
-        error_store=error_store
+        error_prefix='error_store'
     )
 
     print(output)
 
     # Run unexpected input
-    print("You have error keys: {}".format(monitored_pipeline.errors))
+    print("Inspecting error store: error_store1")
+    #print("You have error keys: {}".format(monitored_pipeline.errors[0]))
+    error_store = PipelineStore('./error_store1', inspect=True)
     errors = error_store.get_values()
     print("You have following errors:")
     pprint(errors)
-
-    # pipeline_store.add_fixture('prod', 'test', errors[0])
-
-    # test_fixture_pipeline = pipeline.compose_pipe([
-    #         s02_functional.emit_words,
-    #         s02_functional.filter_empty_word,
-    #         s02_functional.count_words
-    #     ],
-    #     wrapper=pipeline_test.test_step
-    # )
 
 
 if __name__ == '__main__':
