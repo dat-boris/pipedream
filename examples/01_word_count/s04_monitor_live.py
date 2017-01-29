@@ -4,7 +4,7 @@
 How we can send signal and review incidence
 """
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 import s02_functional
 
@@ -26,22 +26,30 @@ def demo_broken_monitoring():
     def check_number_of_words(word):
         assert len(word) >= 3,"Expect have more than 3 words in a paragraph"
 
-    monitored_pipeline = pipeline.compose_pipe([
+    monitored_pipeline = pipeline.Pipeline()
+
+    monitored_pipeline.set_steps([
         s02_functional.emit_words,
-        pipeline.monitor_step(
-            s02_functional.filter_empty_word,
-            check_word_maxlen,
-            error_store=error_store
-        ),
-        pipeline.monitor_step(
+        # monitored_pipeline.monitor_step(
+        #     s02_functional.filter_empty_word,
+        #     check_word_maxlen
+        # ),
+        s02_functional.filter_empty_word,
+        monitored_pipeline.monitor_step(
             s02_functional.count_words,
-            check_number_of_words,
-            error_store=error_store
+            check_number_of_words
         ),
     ])
-    monitored_pipeline(BAD_INPUT[0])
+
+    output = monitored_pipeline.monitor_apply(
+        BAD_INPUT[0],
+        error_store=error_store
+    )
+
+    print(output)
 
     # Run unexpected input
+    print("You have following errors: {}".format(monitored_pipeline.errors))
     errors = error_store.list()
     print("You have following errors: {}".format(errors))
 

@@ -48,6 +48,7 @@ class PipelineStore(object):
         key = self.gen_key_from_input(step_func, input)
         logger.info("[PD] Saving to store key: {} - {}".format(key, output))
         self.store.put(key, self.serialize((input, output)))
+        return key
 
     def gen_key_from_input(self, step_func, input):
         """
@@ -85,3 +86,7 @@ class PipelineStore(object):
 
     def deserialize(self, data):
         return ast.literal_eval(data)
+
+    def clear(self):
+        for k in self.store:
+            self.store.delete(k)
