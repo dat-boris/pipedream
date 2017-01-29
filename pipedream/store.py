@@ -13,16 +13,16 @@ class PipelineStore(object):
     """
     A class represent the pipeline store
     """
-    def __init__(self, path='./pipeline_store'):
+    def __init__(self, path='./pipeline_store', input_key_func=None):
         if not os.path.exists(path):
             os.makedirs(path)
         self.store = FilesystemStore(path)
 
-    def save_fixture(
-            self,
-            step_func,
-            input_key_func=None
-            ):
+        self.input_key_func = input_key_func
+        if self.input_key_func is None:
+            self.input_key_func = lambda x: hash(repr(x))
+
+    def save_fixture(self, step_func):
         """
         A Wrapper function which saves each part into setting
         """
@@ -33,23 +33,23 @@ class PipelineStore(object):
                 for output in step_func(input):
                     yield output
                     output_list.append(output)
-                self.store_put(step_func, input, output_list, input_key_func=input_key_func)
+                self.store_put(step_func, input, output_list)
             return generator_wrapper
 
         else:
             @wraps(step_func)
             def func_wrapper(input, **kwargs):
                 output = step_func(input)
-                self.store_put(step_func, input, output, input_key_func=input_key_func)
+                self.store_put(step_func, input, output)
                 return output
             return func_wrapper
 
-    def store_put(self, step_func, input, output, input_key_func=None):
-        key = self.gen_key_from_input(step_func, input, input_key_func)
+    def store_put(self, step_func, input, output):
+        key = self.gen_key_from_input(step_func, input)
         logger.info("[PD] Saving to store key: {} - {}".format(key, output))
         self.store.put(key, self.serialize((input, output)))
 
-    def gen_key_from_input(self, step_func, input, input_key_func=None):
+    def gen_key_from_input(self, step_func, input):
         """
         Parameters
         ----------
@@ -60,9 +60,7 @@ class PipelineStore(object):
             func_name = step_func
         else:
             func_name = self._func_name(step_func)
-        if input_key_func is None:
-            input_key_func = lambda x: hash(repr(x))
-        return "{}.{}".format(func_name, input_key_func(input))
+        return "{}.{}".format(func_name, self.input_key_func(input))
 
     @staticmethod
     def _func_name(func):
@@ -87,9 +85,3 @@ class PipelineStore(object):
 
     def deserialize(self, data):
         return ast.literal_eval(data)
-
-    # def review(key='', store='prod'):
-    #     pass
-
-    # def add_fixture(src, dest, key=None):
-    #     pass

@@ -1,4 +1,5 @@
 import logging
+from itertools import izip, tee
 from functools import reduce, wraps
 from inspect import isgeneratorfunction
 
@@ -14,16 +15,34 @@ def compose_pipe(funcs, wrapper=None):
     # http://stackoverflow.com/questions/38755702/pythonic-way-to-chain-python-generator-function-to-form-a-pipeline
     return lambda x : reduce(lambda f, g : g(f), func_list, x)
 
-def monitor_step(validate_func,
-                     input_key_func=None,
-                     output_key_func=None
-                     ):
-    @wraps(validate_func)
-    def wrapper(input, **kwargs):
-        for i in input:
-            if (validate_func(i)):
-                yield i
-    return wrapper
+def monitor_step(
+            step_func,
+            validate_func,
+            error_store=None
+            ):
+    if (isgeneratorfunction(step_func)):
+        @wraps(step_func)
+        def wrapper(input, **kwargs):
+            i1, i2 = tee(input)
+            for i,o in izip(i1, step_func(i2)):
+                try:
+                    validate_func(o)
+                except Exception as e:
+                    logger.error("Seen error function: invalid output {} - {}".format(o, str(e)))
+                    error_store.store_put(step_func, i, o)
+                yield o
+        return wrapper
+    else:
+        @wraps(step_func)
+        def func_wrapper(input, **kwargs):
+            output = step_func(input)
+            try:
+                validate_func(output)
+            except Exception as e:
+                logger.error("Seen error function: invalid output {} - {}".format(output, str(e)))
+                error_store.store_put(step_func, input, output)
+            return output
+        return func_wrapper
 
 def test_step(step_function, store):
     """
