@@ -18,4 +18,5 @@ BAD_INPUT = [
 def run_example(i, count_function):
     print("Running example: {}".format(i))
     for input_str in EXAMPLE_DATA:
-        print(count_function(io.StringIO(input_str)))
+        output = count_function(io.StringIO(input_str))
+    return output

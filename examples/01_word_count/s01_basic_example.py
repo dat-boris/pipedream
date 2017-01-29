@@ -37,7 +37,7 @@ def count(stream):
             word += char
     if word:
         counter[word] += 1
-    return counter
+    return dict(counter)
 
 RE_CHAR = re.compile('\w')
 
@@ -59,9 +59,10 @@ def count_better_parser(stream):
             word += char
     if word:
         counter[word] += 1
-    return counter
+    return dict(counter)
 
 
 if __name__=='__main__':
-    run_example(1, count)
+    output = run_example(1, count)
+    #assert output == {'Hello':2, 'world':1}, output
     run_example(2, count_better_parser)

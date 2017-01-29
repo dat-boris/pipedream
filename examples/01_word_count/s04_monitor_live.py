@@ -37,7 +37,6 @@ def demo_broken_monitoring():
                 self.empty_count = 0
 
     monitored_pipeline = pipeline.Pipeline()
-
     monitored_pipeline.set_steps([
         monitored_pipeline.monitor_step(
             s02_functional.emit_words,

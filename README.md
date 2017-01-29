@@ -18,27 +18,36 @@ See [word count example here](examples/01_word_count/)
 
 ### 1. Functional composition
 
-Processes should be composed in [Promise like pipeline](https://promisesaplus.com/)
-which allows chaining of processes and error handler.
+[example](examples/01_word_count/s02_functional.py)
+
+Processes should be composed in functional steps.  Error handling should be handled
+by the pipeline to provide defensive programming.
 
 ```python
-# optional sync await can apply here
-def production_pipeline(input):
-    output = create_count_of_words(text)
-                .then(aggregate_count)
-                .catch(error_handler)
-    return output
+datapipe = pipeline.Pipeline([
+    emit_words,
+    filter_empty_word,
+    count_words
+])
 ```
 
 
 ### 2. Testability
 
+[example](examples/01_word_count/s03_test_fixtures.py)
+
 Each processes, should be testable individually via [parameterize tests](http://doc.pytest.org/en/latest/parametrize.html)
 
 ```python
 @pytest.mark.parametrize('desc,in,out', [
-    ('Basic counting', 'apple orange apple', {'apple':2, orange:1})
-    ('Counting empty string', '', {})
+    ('Basic counting',
+      'Hello world! Hello friends!',
+      {'Hello':2, 'world':1, 'friends':1}
+    ),
+    ('Counting with unicode',
+      'Hello world🌏, Hello friends🍕',
+      {'Hello':2, 'world':1, 'friends':1}
+    )
 ])
 def test_count_of_words(desc,in,out):
     assert create_count_of_words(in) == out, "{} is correct".format(desc)
@@ -47,59 +56,35 @@ def test_count_of_words(desc,in,out):
 
 ### 3. Real data testing
 
+[example](examples/01_word_count/s04_monitor_live.py)
+
 We should encourage testing using real data and large data set.  The framework
 should be able to take in real data set and spit out test data at each stage
 
 ```python
 import pipedream
 
-pipedream.set_fixture_capture(True,
-                              number_of_keys=500,
-                              output_fixture_dir='test_fixture')
+store = PipelineStore('./test_fixture')
 
-# this will create the new_fixture dir
-def production_pipeline(input):
-    output = create_count_of_words(text)
-                .set_partition_key_space(get_keyspace, get_data_given_key )
-                .then(aggregate_count)
-                .catch(error_handler)
-    return output
+fixture_pipeline.apply(
+    test_data,
+    wrapper=store.save_fixture
+)
 
-def get_keyspace(data):
-    return data.keys()
+# Test data is now stored in `./test_fixture`
 
-def get_data_given_key(key, data):
-    return { key: data[key] }
-
-@pipedream.use_fixture('create_count_of_words')
-def test_with_fixture(test_fixture, test_output):
-    # might need to do required mock/masking of test_output
-    assert create_count_of_words(test_fixture) == test_output
+# Each steps can be tested individually
+pipeline.test_step(
+    s02_functional.emit_words,
+    store=store
+)
 ```
 
-
-### 4. Defensive failure and Automatic error capture
-
-If we encounter error at each stage at production, we should be able to create
-additional fixture from logs
-
-```python
-import pipedream
-
-pipedream.set_error_fixture(True, output_as_log=True)
-
-# this will create the log as serialized text which can be parsed and recreate break fixture
-production_pipeline(input)
-
-# Depends on how big your log is
-parse_log_generate_fixture(logs,
-                           error_reason='Example explanation',
-                           output_fixture_dir='test_fixture')
-
-```
 
 
 ### 5. Production monitoring
+
+[]
 
 We should be able to emit data health metrics for free in the pipeline, and use
 such metrics in case of error
@@ -109,18 +94,25 @@ automatic error capture
 
 ```python
 
-pipedream.set_error_fixture(True,
-                            output_as_log=True,
-                            log_assert_error=True)
+monitored_pipeline = pipeline.Pipeline()
+monitored_pipeline.set_steps([
+    monitored_pipeline.monitor_step(
+        s02_functional.emit_words,
+        FrequencyValidator().validate
+    ),
+    monitored_pipeline.monitor_step(
+        s02_functional.filter_empty_word,
+        check_word_maxlen
+    ),
+    s02_functional.filter_empty_word,
+    s02_functional.count_words
+])
 
-# optional sync await can apply here
-def production_pipeline(input_from_appleland):
-    output = create_count_of_words(text)
-                .metrics(count_apple_and_oranges)   # this get emitted metrics logger (e.g. statsd)
-                .assert_metric(lambda metrics: metrics['apple_count'] > metrics['orange_count'])
-                .then(aggregate_count)
-                .catch(error_handler)
-    return output
+output = monitored_pipeline.monitor_apply(
+    BAD_INPUT[0],
+    error_prefix='error_store'
+)
+
 ```
 
 
