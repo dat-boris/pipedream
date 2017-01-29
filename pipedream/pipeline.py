@@ -5,21 +5,35 @@ from inspect import isgeneratorfunction
 
 logger = logging.getLogger(__name__)
 
-def compose_pipe(funcs, wrapper=None):
-    """
-    Compose a pipeline together
-    """
-    func_list = list(funcs)
-    if wrapper is not None:
-        func_list = [wrapper(f) for f in funcs]
-    # http://stackoverflow.com/questions/38755702/pythonic-way-to-chain-python-generator-function-to-form-a-pipeline
-    return lambda x : reduce(lambda f, g : g(f), func_list, x)
 
-def monitor_step(
-            step_func,
-            validate_func,
-            error_store=None
-            ):
+class Pipeline(object):
+    """
+    A data pipeline example
+    """
+    def __init__(self, funcs):
+        self.funcs = list(funcs)
+
+    def apply(self, input, wrapper=None):
+        """
+        Compose a pipeline together
+        """
+        if wrapper:
+            func_list = self.funcs
+            if wrapper is not None:
+                func_list = [wrapper(f) for f in self.funcs]
+
+        # http://stackoverflow.com/questions/38755702/pythonic-way-to-chain-python-generator-function-to-form-a-pipeline
+        return lambda x : reduce(lambda f, g : g(f), func_list, x)
+
+    def monitor_apply(input, wrapper=None, error_store=None):
+        """
+        Not monitored yet
+        """
+        raise NotImplementedError("Have not created the error")
+
+
+def monitor_step(step_func, validate_func):
+
     if (isgeneratorfunction(step_func)):
         @wraps(step_func)
         def wrapper(input, **kwargs):

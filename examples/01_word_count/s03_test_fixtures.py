@@ -18,17 +18,19 @@ from testdata import EXAMPLE_DATA, run_example
 def demo_test_fixture():
     store = PipelineStore()
     # generate the tests
-    create_fixture_pipeline = pipeline.compose_pipe([
+    fixture_pipeline = pipeline.Pipeline([
             s02_functional.emit_words,
             s02_functional.filter_empty_word,
             s02_functional.count_words
-        ],
-        wrapper=store.save_fixture
+        ]
     )
 
     test_data = EXAMPLE_DATA[1]
     print(u"Running '{}' through data pipeline fixture".format(test_data))
-    create_fixture_pipeline(test_data)
+    fixture_pipeline.apply(
+        test_data,
+        wrapper=store.save_fixture
+    )
 
     # py.test - boom!
     # run the tests
