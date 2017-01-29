@@ -7,7 +7,10 @@ from functools import reduce, wraps
 from simplekv.fs import FilesystemStore
 from inspect import isgeneratorfunction
 
+from .utils import wrap_function
+
 logger = logging.getLogger(__name__)
+
 
 class PipelineStore(object):
     """
@@ -17,6 +20,7 @@ class PipelineStore(object):
         if not os.path.exists(path):
             os.makedirs(path)
         self.store = FilesystemStore(path)
+        self.clear()
 
         self.input_key_func = input_key_func
         if self.input_key_func is None:
@@ -26,23 +30,10 @@ class PipelineStore(object):
         """
         A Wrapper function which saves each part into setting
         """
-        if isgeneratorfunction(step_func):
-            @wraps(step_func)
-            def generator_wrapper(input, **kwargs):
-                output_list = []
-                for output in step_func(input):
-                    yield output
-                    output_list.append(output)
-                self.store_put(step_func, input, output_list)
-            return generator_wrapper
+        def callback(input, output, f):
+            self.store_put(f, input, output)
 
-        else:
-            @wraps(step_func)
-            def func_wrapper(input, **kwargs):
-                output = step_func(input)
-                self.store_put(step_func, input, output)
-                return output
-            return func_wrapper
+        return wrap_function(step_func, callback)
 
     def store_put(self, step_func, input, output):
         key = self.gen_key_from_input(step_func, input)
@@ -80,6 +71,14 @@ class PipelineStore(object):
                             self.store.get(
                                 "{}.{}".format(func_name, input_key)
                             ))
+
+    def get_values(self, keys=None):
+        if keys is None:
+            keys = self.list()
+        return [
+            self.store.get("{}.{}".format(func_name, input_key))
+            for func_name, input_key in keys
+        ]
 
     def serialize(self, data):
         return repr(data)

@@ -8,6 +8,8 @@ logging.basicConfig(level=logging.ERROR)
 
 import s02_functional
 
+from pprint import pprint
+
 from testdata import BAD_INPUT
 
 from pipedream import pipeline
@@ -49,9 +51,10 @@ def demo_broken_monitoring():
     print(output)
 
     # Run unexpected input
-    print("You have following errors: {}".format(monitored_pipeline.errors))
-    errors = error_store.list()
-    print("You have following errors: {}".format(errors))
+    print("You have error keys: {}".format(monitored_pipeline.errors))
+    errors = error_store.get_values()
+    print("You have following errors:")
+    pprint(errors)
 
     # pipeline_store.add_fixture('prod', 'test', errors[0])
 

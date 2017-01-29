@@ -1,7 +1,6 @@
 import logging
-from itertools import izip, tee
-from functools import reduce, wraps
-from inspect import isgeneratorfunction
+from functools import reduce
+from .store import wrap_function
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +45,7 @@ class Pipeline(object):
         def clear_stacktrace(x):
             if self.found_error:
                 logger.error("Found error: see stack trace on Pipeline.errors")
+                self.errors.append(self.data_stack_trace)
             self.data_stack_trace = []
             return x
         #TODO: save stack trace globally
@@ -60,31 +60,14 @@ class Pipeline(object):
         """
         This will handle the stack trace of the error
         """
-        if (isgeneratorfunction(step_func)):
-            @wraps(step_func)
-            def wrapper(input, **kwargs):
-                i1, i2 = tee(input)
-                for i,o in izip(i1, step_func(i2)):
-                    try:
-                        validate_func(o)
-                    except AssertionError as e:
-                        logger.error("Seen error: {}".format(e))
-                        self.found_error = True
-                    self.data_stack_trace.append(o)
-                    yield o
-            return wrapper
-        else:
-            @wraps(step_func)
-            def func_wrapper(input, **kwargs):
-                output = step_func(input)
-                try:
-                    validate_func(output)
-                except AssertionError as e:
-                    logger.error("Seen error: {}".format(e))
-                    self.found_error = True
-                self.data_stack_trace.append(output)
-                return output
-            return func_wrapper
+        def validate(i, o, f):
+            try:
+                validate_func(o)
+            except AssertionError as e:
+                logger.error("Seen error: {}".format(e))
+                self.found_error = True
+
+        return wrap_function(step_func, validate)
 
 
 def test_step(step_function, store):
