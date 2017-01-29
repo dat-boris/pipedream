@@ -1,6 +1,8 @@
 
 # PipeDream - a promise for Validation Driven Data
 
+[![CircleCI](https://circleci.com/gh/sketchytechky/pipedream.svg?style=svg)](https://circleci.com/gh/sketchytechky/pipedream)
+
 PipeDream is an initiative for creating a Validation Driven Data pipeline.
 
 We propose a set of principle which helps us to create a Validation Driven Data
