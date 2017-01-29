@@ -18,7 +18,7 @@ See [word count example here](examples/01_word_count/)
 
 ### 1. Functional composition
 
-[example](examples/01_word_count/s02_functional.py)
+[Example](examples/01_word_count/s02_functional.py)
 
 Processes should be composed in functional steps.  Error handling should be handled
 by the pipeline to provide defensive programming.
@@ -33,8 +33,6 @@ datapipe = pipeline.Pipeline([
 
 
 ### 2. Testability
-
-[example](examples/01_word_count/s03_test_fixtures.py)
 
 Each processes, should be testable individually via [parameterize tests](http://doc.pytest.org/en/latest/parametrize.html)
 
@@ -56,7 +54,7 @@ def test_count_of_words(desc,in,out):
 
 ### 3. Real data testing
 
-[example](examples/01_word_count/s04_monitor_live.py)
+[Example](examples/01_word_count/s03_test_fixtures.py)
 
 We should encourage testing using real data and large data set.  The framework
 should be able to take in real data set and spit out test data at each stage
@@ -84,7 +82,7 @@ pipeline.test_step(
 
 ### 5. Production monitoring
 
-[]
+[Example](examples/01_word_count/s04_monitor_live.py)
 
 We should be able to emit data health metrics for free in the pipeline, and use
 such metrics in case of error
